@@ -50,6 +50,20 @@ export function formatTableDataForExport(tableData: any[]) {
 }
 
 /**
+ * 格式化稽核规则库数据为Excel导出格式
+ * @param tableData 表格数据
+ * @returns 格式化后的数据
+ */
+export function formatAuditRuleLibraryForExport(tableData: any[]) {
+  return tableData.map((item, index) => ({
+    '序号': index + 1,
+    '类型': item.type,
+    '稽核规则': item.rule,
+    '规则公式': item.formula
+  }))
+}
+
+/**
  * 导出带样式的Excel文件（可选）
  * @param data 要导出的数据数组
  * @param filename 文件名
@@ -65,7 +79,7 @@ export function exportStyledExcel(data: any[], filename: string = '稽核规则�
       { wch: 8 },  // 序号列
       { wch: 15 }, // 单位列
       { wch: 60 }, // 稽核规则列
-      { wch: 50 }  // 稽核结果列
+      { wch: 60 }  // 稽核结果列
     ]
     worksheet['!cols'] = colWidths
     

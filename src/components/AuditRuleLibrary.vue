@@ -88,15 +88,15 @@
                 <el-icon><Grid /></el-icon>
                 <span>质量监管</span>
               </template>
-              <el-menu-item index="2-1-1" class="active-menu-item">
-                <el-icon><CircleCheck /></el-icon>
-                <span>稽核规则运算</span>
-              </el-menu-item>
-              <el-menu-item index="2-1-2">
-                <RouterLink to="/audit-rule-library">
-                  <el-icon><Grid /></el-icon>
-                  <span>稽核规则库</span>
+              <el-menu-item index="2-1-1">
+                <RouterLink to="/">
+                  <el-icon><CircleCheck /></el-icon>
+                  <span>稽核规则运算</span>
                 </RouterLink>
+              </el-menu-item>
+              <el-menu-item index="2-1-2" class="active-menu-item">
+                <el-icon><Grid /></el-icon>
+                <span>稽核规则库</span>
               </el-menu-item>
               <el-menu-item index="2-1-3">
                 <el-icon><Grid /></el-icon>
@@ -115,43 +115,38 @@
             <el-icon><House /></el-icon>
             <span>首页</span>
           </el-breadcrumb-item>
-          <el-breadcrumb-item>稽核规则运算</el-breadcrumb-item>
+          <el-breadcrumb-item>稽核规则库</el-breadcrumb-item>
         </el-breadcrumb>
+
+        <!-- 标签页 -->
+        <!-- <el-tabs v-model="activeTab" class="content-tabs">
+          <el-tab-pane label="首页" name="home">
+            <template #label>
+              <el-icon><CircleCheck /></el-icon>
+              <span>首页</span>
+            </template>
+          </el-tab-pane>
+          <el-tab-pane label="稽核规则库" name="audit-library">
+            <template #label>
+              <el-icon><Grid /></el-icon>
+              <span>稽核规则库</span>
+            </template>
+          </el-tab-pane>
+        </el-tabs> -->
 
         <!-- 筛选区域 -->
         <div class="filter-section">
           <div class="filter-controls">
             <div class="filter-item">
-              <label>时间:</label>
-              <el-date-picker
-                v-model="timeRange"
-                type="daterange"
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                size="small"
-              />
-            </div>
-            <div class="filter-item">
-              <label>单位:</label>
-              <el-select v-model="selectedUnit" placeholder="请选择单位" size="default" class="select-item">
-                <el-option label="XX中心" value="xx-center" />
-                <el-option label="XX市气象局" value="xx-bureau" />
-              </el-select>
-            </div>
-            <div class="filter-item">
-              <label>稽核规则:</label>
-              <el-select v-model="selectedRule" placeholder="请选择稽核规则" size="default" class="select-item">
-                <el-option label="账务处理规则" value="accounting" />
-                <el-option label="预算管理规则" value="budget" />
+              <label>类型:</label>
+              <el-select v-model="selectedType" placeholder="请选择类型" size="default" class="select-item">
+                <el-option label="账务处理" value="accounting" />
+                <el-option label="预算管理" value="budget" />
+                <el-option label="资金管理" value="fund" />
               </el-select>
             </div>
           </div>
           <div class="action-buttons">
-            <el-button type="primary" @click="handleImport">
-              <el-icon><Upload /></el-icon>
-              导入
-            </el-button>
             <el-button type="primary" @click="handleSearch">
               <el-icon><Search /></el-icon>
               查询
@@ -163,11 +158,16 @@
           </div>
         </div>
 
+        <!-- 页面标题 -->
+        <div class="page-title-section">
+          <h2 class="page-title">稽核规则库</h2>
+        </div>
+
         <!-- 数据表格 -->
-        <el-table :data="tableData" class="data-table" border>   
-            <el-table-column prop="unit" label="单位" width="200" />
+        <el-table :data="tableData" class="data-table" border>
+          <el-table-column prop="type" label="类型" width="150" />
           <el-table-column prop="rule" label="稽核规则" min-width="400" />
-          <el-table-column prop="result" label="稽核结果" min-width="300" />
+          <el-table-column prop="formula" label="规则公式" min-width="300" />
         </el-table>
       </el-main>
     </el-container>
@@ -181,30 +181,38 @@ import {
   Location,
   CircleCheck,
   House,
-  Upload,
   Search,
   Download
 } from '@element-plus/icons-vue'
-import { exportToExcel, formatTableDataForExport } from '../utils/excelExport'
+import { exportToExcel, formatAuditRuleLibraryForExport } from '../utils/excelExport'
 import { ElMessage } from 'element-plus'
 
 // 响应式数据
-const activeMenu = ref('2-1-1')
-const timeRange = ref<[Date, Date] | null>(null)
-const selectedUnit = ref('')
-const selectedRule = ref('')
+const activeMenu = ref('2-1-2')
+const activeTab = ref('audit-library')
+const selectedType = ref('')
 
 // 表格数据
 const tableData = ref([
   {
-    unit: 'XX中心',
-    rule: '账务处理:100201银行存款与基本账户存款与80010202货币资金-银行存款一致性比对',
-    result: '"100201"=56398, "80010202"=57429; 56398-57429=-1031, false'
+    type: '账务处理',
+    rule: '100201银行存款与基本账户存款与80010202货币资金-银行存款一致性比对',
+    formula: '100201=A, 80010202=B, if "A-B"≠0, false'
   },
   {
-    unit: 'XX市气象局',
-    rule: '预算管理:中央财政项目收入与预算控制数一致性比对',
-    result: '"252020020203, 6001"=520000, "控制数,252020020203"=550000, 520000-550000=-30000, false'
+    type: '预算管理',
+    rule: '中央财政项目收入与预算控制数一致性比对',
+    formula: ''
+  },
+  {
+    type: '账务处理',
+    rule: '应收账款与预收账款余额一致性比对',
+    formula: '1122=A, 2203=B, if "A-B"≠0, false'
+  },
+  {
+    type: '预算管理',
+    rule: '预算执行进度与计划进度一致性比对',
+    formula: '实际执行=A, 计划进度=B, if "A-B"<0, false'
   }
 ])
 
@@ -217,15 +225,15 @@ const handleExport = () => {
     }
     
     // 格式化数据
-    const exportData = formatTableDataForExport(tableData.value)
+    const exportData = formatAuditRuleLibraryForExport(tableData.value)
     
     // 生成文件名（包含时间戳）
     const now = new Date()
     const timestamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')
-    const filename = `稽核规则运算结果_${timestamp}`
+    const filename = `稽核规则库_${timestamp}`
     
     // 导出Excel
-    const success = exportToExcel(exportData, filename, '稽核结果')
+    const success = exportToExcel(exportData, filename, '稽核规则库')
     
     if (success) {
       ElMessage.success('导出成功！')
@@ -241,11 +249,6 @@ const handleExport = () => {
 // 查询功能
 const handleSearch = () => {
   ElMessage.info('查询功能开发中...')
-}
-
-// 导入功能
-const handleImport = () => {
-  ElMessage.info('导入功能开发中...')
 }
 </script>
 
@@ -344,6 +347,18 @@ const handleImport = () => {
 .action-buttons {
   display: flex;
   gap: 10px;
+}
+
+.page-title-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
 }
 
 .data-table {

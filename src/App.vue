@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import AuditRuleOperation from './components/AuditRuleOperation.vue'
+import AuditRuleLibrary from './components/AuditRuleLibrary.vue'
 </script>
 
 <template>
-  <AuditRuleOperation />
+  <RouterView></RouterView>
 </template>
