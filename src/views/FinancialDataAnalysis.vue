@@ -88,9 +88,12 @@
                 <el-icon><Grid /></el-icon>
                 <span>质量监管</span>
               </template>
-              <el-menu-item index="2-1-1" class="active-menu-item">
-                <el-icon><CircleCheck /></el-icon>
-                <span>稽核规则运算</span>
+              <el-menu-item index="2-1-1">
+                <RouterLink to="/">
+                  <el-icon><CircleCheck /></el-icon>
+                  <span>稽核规则运算</span>
+                </RouterLink>
+
               </el-menu-item>
               <el-menu-item index="2-1-2">
                 <RouterLink to="/audit-rule-library">
@@ -98,8 +101,8 @@
                   <span>稽核规则库</span>
                 </RouterLink>
               </el-menu-item>
-              <el-menu-item index="2-1-3">
-                <el-icon><Grid /></el-icon>
+              <el-menu-item index="2-1-3" class="active-menu-item">
+                <el-icon><CircleCheck /></el-icon>
                 <span>财务数据分析统计</span>
               </el-menu-item>
             </el-sub-menu>
@@ -115,46 +118,53 @@
             <el-icon><House /></el-icon>
             <span>首页</span>
           </el-breadcrumb-item>
-          <el-breadcrumb-item>稽核规则运算</el-breadcrumb-item>
+          <el-breadcrumb-item>财务数据分析统计</el-breadcrumb-item>
         </el-breadcrumb>
+
+        <!-- 标签页 -->
+        <el-tabs v-model="activeTab" class="content-tabs">
+          <el-tab-pane label="首页" name="home">
+            <template #label>
+              <el-icon><CircleCheck /></el-icon>
+              <span>首页</span>
+            </template>
+          </el-tab-pane>
+          <el-tab-pane label="财务数据分析统计" name="data-analysis">
+            <template #label>
+              <el-icon><CircleCheck /></el-icon>
+              <span>财务数据分析统计</span>
+            </template>
+          </el-tab-pane>
+        </el-tabs>
 
         <!-- 筛选区域 -->
         <div class="filter-section">
           <div class="filter-controls">
             <div class="filter-item">
-              <label>时间:</label>
-              <el-date-picker
-                v-model="timeRange"
-                type="daterange"
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                size="small"
-              />
+              <label>查询方案:</label>
+              <el-select v-model="selectedPlan" placeholder="请选择查询方案" size="default" class="select-item">
+                <el-option label="方案一" value="plan1" />
+                <el-option label="方案二" value="plan2" />
+                <el-option label="方案三" value="plan3" />
+              </el-select>
             </div>
             <div class="filter-item">
               <label>单位:</label>
               <el-select v-model="selectedUnit" placeholder="请选择单位" size="default" class="select-item">
                 <el-option label="XX中心" value="xx-center" />
                 <el-option label="XX市气象局" value="xx-bureau" />
-              </el-select>
-            </div>
-            <div class="filter-item">
-              <label>稽核规则:</label>
-              <el-select v-model="selectedRule" placeholder="请选择稽核规则" size="default" class="select-item">
-                <el-option label="账务处理规则" value="accounting" />
-                <el-option label="预算管理规则" value="budget" />
+                <el-option label="XX分局" value="xx-branch" />
               </el-select>
             </div>
           </div>
           <div class="action-buttons">
-            <el-button type="primary" @click="handleImport">
-              <el-icon><Upload /></el-icon>
-              导入
+            <el-button type="primary" @click="handleAddPlan">
+              <el-icon><Plus /></el-icon>
+              新增查询方案
             </el-button>
-            <el-button type="primary" @click="handleSearch">
-              <el-icon><Search /></el-icon>
-              查询
+            <el-button type="primary" @click="handleRetrieveData">
+              <el-icon><Link /></el-icon>
+              取数
             </el-button>
             <el-button type="primary" @click="handleExport">
               <el-icon><Download /></el-icon>
@@ -163,11 +173,39 @@
           </div>
         </div>
 
+        <!-- 页面标题 -->
+        <div class="page-title-section">
+          <h2 class="page-title">报表标题</h2>
+        </div>
+
         <!-- 数据表格 -->
-        <el-table :data="tableData" class="data-table" border>   
-            <el-table-column prop="unit" label="单位" width="200" />
-          <el-table-column prop="rule" label="稽核规则" min-width="400" />
-          <el-table-column prop="result" label="稽核结果" min-width="300" />
+        <el-table :data="tableData" class="data-table" border>
+          <el-table-column prop="unit" label="单位" width="150" align="center"/>
+          <el-table-column prop="customItem1" label="自定义报表项一" min-width="200" align="center">
+            <template #header>
+              <span>自定义报表项一</span>
+              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
+            </template>
+          </el-table-column>
+          <el-table-column prop="customItem2" label="自定义报表项二" min-width="200" align="center">
+            <template #header>
+              <span>自定义报表项二</span>
+              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
+            </template>
+          </el-table-column>
+          <el-table-column prop="customItem3" label="自定义报表项三" min-width="200" align="center">
+            <!-- <template #header>
+              <span>自定义报表项</span> -->
+              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
+            <!-- </template> -->
+          </el-table-column>
+          <el-table-column prop="more" label="......" min-width="150" align="center">
+            <template #header>
+              <span>......</span>
+              <span style="font-size: smaller;"> 更多数据</span>
+              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
+            </template>
+          </el-table-column>
         </el-table>
       </el-main>
     </el-container>
@@ -181,30 +219,56 @@ import {
   Location,
   CircleCheck,
   House,
-  Upload,
-  Search,
-  Download
+  Plus,
+  Link,
+  Download,
+  LocationFilled
 } from '@element-plus/icons-vue'
-import { exportToExcel, formatTableDataForExport } from '../utils/excelExport'
+import { exportToExcel, formatFinancialDataAnalysisForExport } from '../utils/excelExport'
 import { ElMessage } from 'element-plus'
 
 // 响应式数据
-const activeMenu = ref('2-1-1')
-const timeRange = ref<[Date, Date] | null>(null)
+const activeMenu = ref('2-1-3')
+const activeTab = ref('data-analysis')
+const selectedPlan = ref('')
 const selectedUnit = ref('')
-const selectedRule = ref('')
 
 // 表格数据
 const tableData = ref([
   {
     unit: 'XX中心',
-    rule: '账务处理:100201银行存款与基本账户存款与80010202货币资金-银行存款一致性比对',
-    result: '"100201"=56398, "80010202"=57429; 56398-57429=-1031, false'
+    customItem1: '100000',
+    customItem2: '200000',
+    customItem3: '300000',
+    more: '...'
   },
   {
     unit: 'XX市气象局',
-    rule: '预算管理:中央财政项目收入与预算控制数一致性比对',
-    result: '"252020020203, 6001"=520000, "控制数,252020020203"=550000, 520000-550000=-30000, false'
+    customItem1: '150000',
+    customItem2: '250000',
+    customItem3: '350000',
+    more: '...'
+  },
+  {
+    unit: 'XX分局',
+    customItem1: '80000',
+    customItem2: '180000',
+    customItem3: '280000',
+    more: '...'
+  },
+  {
+    unit: 'XX站',
+    customItem1: '120000',
+    customItem2: '220000',
+    customItem3: '320000',
+    more: '...'
+  },
+  {
+    unit: 'XX台',
+    customItem1: '90000',
+    customItem2: '190000',
+    customItem3: '290000',
+    more: '...'
   }
 ])
 
@@ -217,15 +281,15 @@ const handleExport = () => {
     }
     
     // 格式化数据
-    const exportData = formatTableDataForExport(tableData.value)
+    const exportData = formatFinancialDataAnalysisForExport(tableData.value)
     
     // 生成文件名（包含时间戳）
     const now = new Date()
     const timestamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')
-    const filename = `稽核规则运算结果_${timestamp}`
+    const filename = `财务数据分析统计_${timestamp}`
     
     // 导出Excel
-    const success = exportToExcel(exportData, filename, '稽核结果')
+    const success = exportToExcel(exportData, filename, '财务数据分析统计')
     
     if (success) {
       ElMessage.success('导出成功！')
@@ -238,14 +302,14 @@ const handleExport = () => {
   }
 }
 
-// 查询功能
-const handleSearch = () => {
-  ElMessage.info('查询功能开发中...')
+// 新增查询方案
+const handleAddPlan = () => {
+  ElMessage.info('新增查询方案功能开发中...')
 }
 
-// 导入功能
-const handleImport = () => {
-  ElMessage.info('导入功能开发中...')
+// 取数功能
+const handleRetrieveData = () => {
+  ElMessage.info('取数功能开发中...')
 }
 </script>
 
@@ -346,6 +410,18 @@ const handleImport = () => {
   gap: 10px;
 }
 
+.page-title-section {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.page-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin: 0;
+}
+
 .data-table {
   width: 100%;
 }
@@ -362,6 +438,22 @@ const handleImport = () => {
 
 .data-table :deep(.el-table td) {
   padding: 12px 0;
+}
+
+.pin-icon {
+  color: #f56c6c;
+  margin-left: 5px;
+}
+
+.table-note {
+  margin-top: 10px;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+}
+
+.table-note p {
+  margin: 0;
 }
 
 /* 响应式设计 */

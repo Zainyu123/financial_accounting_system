@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import AuditRuleLibrary from './components/AuditRuleLibrary.vue'
+// 使用路由视图，不需要导入组件
 </script>
 
 <template>

@@ -64,6 +64,22 @@ export function formatAuditRuleLibraryForExport(tableData: any[]) {
 }
 
 /**
+ * 格式化财务数据分析统计数据为Excel导出格式
+ * @param tableData 表格数据
+ * @returns 格式化后的数据
+ */
+export function formatFinancialDataAnalysisForExport(tableData: any[]) {
+  return tableData.map((item, index) => ({
+    '序号': index + 1,
+    '单位': item.unit,
+    '自定义报表项一': item.customItem1,
+    '自定义报表项二': item.customItem2,
+    '自定义报表项三': item.customItem3,
+    '更多数据': item.more
+  }))
+}
+
+/**
  * 导出带样式的Excel文件（可选）
  * @param data 要导出的数据数组
  * @param filename 文件名
