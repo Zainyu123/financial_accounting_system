@@ -166,10 +166,10 @@
         </div>
 
         <!-- 数据表格 -->
-        <el-table :data="tableData" class="data-table" border>   
-            <el-table-column prop="unit" label="单位" width="200" />
-          <el-table-column prop="rule" label="稽核规则" min-width="400" />
-          <el-table-column prop="result" label="稽核结果" min-width="300" />
+        <el-table :data="tableData" class="data-table" stripe border :header-cell-style="{background:'#eef1f6',color:'#606266'}">   
+            <el-table-column prop="unit" label="单位" width="200" align="center"/>
+          <el-table-column prop="rule" label="稽核规则" min-width="400" align="center"/>
+          <el-table-column prop="result" label="稽核结果" min-width="300" align="center"/>
         </el-table>
       </el-main>
     </el-container>

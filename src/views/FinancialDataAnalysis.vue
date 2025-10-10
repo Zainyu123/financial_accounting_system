@@ -179,7 +179,7 @@
         </div>
 
         <!-- 数据表格 -->
-        <el-table :data="tableData" class="data-table" border>
+        <el-table :data="tableData" class="data-table" border stripe :header-cell-style="{background:'#eef1f6',color:'#606266'}">
           <el-table-column prop="unit" label="单位" width="150" align="center"/>
           <el-table-column prop="customItem1" label="自定义报表项一" min-width="200" align="center">
             <template #header>
