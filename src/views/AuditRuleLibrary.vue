@@ -189,7 +189,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="稽核规则" >
-            <el-input v-model=""></el-input>
+            <el-input v-model="form.rule"></el-input>
           </el-form-item>
         </el-col>
       </el-row>
