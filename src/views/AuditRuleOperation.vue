@@ -189,6 +189,7 @@ import {
 } from '@element-plus/icons-vue'
 import { exportToExcel, formatTableDataForExport } from '../utils/excelExport'
 import { ElMessage } from 'element-plus'
+import { selectAuditRule } from '@/api/AuditRule/index.js'
 
 // 响应式数据
 const activeMenu = ref('2-1-1')
@@ -243,6 +244,11 @@ const handleExport = () => {
 // 查询功能
 const handleSearch = () => {
   ElMessage.info('查询功能开发中...')
+  selectAuditRule().then(_response => {
+    console.log('用户列表:', _response.data);
+  }).catch(_error => {
+    console.error('获取用户列表失败:', _error);
+  });
 }
 
 // 导入功能

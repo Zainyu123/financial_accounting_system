@@ -153,6 +153,10 @@
               <el-icon><Search /></el-icon>
               查询
             </el-button>
+            <el-button type="primary" @click="dialogVisible = true">
+              <el-icon><Plus /></el-icon>
+              新增规则
+            </el-button>
             <el-button type="primary" @click="handleExport">
               <el-icon><Download /></el-icon>
               导出
@@ -174,6 +178,24 @@
       </el-main>
     </el-container>
   </el-container>
+
+  <el-dialog v-model="dialogVisible" title="新增稽核规则" width="600px"> 
+    <el-form v-model="form" :ref="formRef">
+      <el-row :gutter="8">
+        <el-col :span="12">
+          <el-form-item label="规则类型">
+            <el-input v-model="form.type" placeholder="请输入规则类型"></el-input>
+          </el-form-item>
+        </el-col>
+        <el-col :span="12">
+          <el-form-item label="稽核规则" >
+            <el-input v-model=""></el-input>
+          </el-form-item>
+        </el-col>
+      </el-row>
+    </el-form>
+  </el-dialog>
+
 </template>
 
 <script setup lang="ts">
@@ -184,15 +206,24 @@ import {
   CircleCheck,
   House,
   Search,
-  Download
+  Download,
+  Plus
 } from '@element-plus/icons-vue'
 import { exportToExcel, formatAuditRuleLibraryForExport } from '../utils/excelExport'
-import { ElMessage } from 'element-plus'
+import { ElMessage, FormInstance } from 'element-plus'
 
 // 响应式数据
 const activeMenu = ref('2-1-2')
 const activeTab = ref('audit-library')
 const selectedType = ref('')
+const dialogVisible = ref(false)
+
+const form = ref({
+  type: '',
+  rule: '',
+  formula: ''
+})
+const formRef = ref<FormInstance>();
 
 // 表格数据
 const tableData = ref([
@@ -343,7 +374,7 @@ const handleSearch = () => {
 }
 
 .select-item {
-  width: 150px;
+  width: 250px;
 }
 
 .action-buttons {
