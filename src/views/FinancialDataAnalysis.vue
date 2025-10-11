@@ -122,7 +122,7 @@
         </el-breadcrumb>
 
         <!-- 标签页 -->
-        <el-tabs v-model="activeTab" class="content-tabs">
+        <!-- <el-tabs v-model="activeTab" class="content-tabs">
           <el-tab-pane label="首页" name="home">
             <template #label>
               <el-icon><CircleCheck /></el-icon>
@@ -135,7 +135,7 @@
               <span>财务数据分析统计</span>
             </template>
           </el-tab-pane>
-        </el-tabs>
+        </el-tabs> -->
 
         <!-- 筛选区域 -->
         <div class="filter-section">
