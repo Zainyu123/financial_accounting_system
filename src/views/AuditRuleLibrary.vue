@@ -189,7 +189,7 @@
         </el-col>
         <el-col :span="12">
           <el-form-item label="稽核规则" >
-            <el-input v-model="form.rule"></el-input>
+            <el-input v-model="form.rule" placeholder="请输入稽核规则"></el-input>
           </el-form-item>
         </el-col>
       </el-row>
@@ -211,6 +211,7 @@ import {
 } from '@element-plus/icons-vue'
 import { exportToExcel, formatAuditRuleLibraryForExport } from '../utils/excelExport'
 import { ElMessage, FormInstance } from 'element-plus'
+import { selectAuditRule } from '@/api/AuditRule/index.js'
 
 // 响应式数据
 const activeMenu = ref('2-1-2')
@@ -282,6 +283,9 @@ const handleExport = () => {
 // 查询功能
 const handleSearch = () => {
   ElMessage.info('查询功能开发中...')
+  selectAuditRule().then(res => {
+    console.log("查询出来的规则库信息:", res)
+  })
 }
 </script>
 

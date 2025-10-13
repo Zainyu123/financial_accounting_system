@@ -142,7 +142,7 @@
           <div class="filter-controls">
             <div class="filter-item">
               <label>查询方案:</label>
-              <el-select v-model="selectedPlan" placeholder="请选择查询方案" size="default" class="select-item">
+              <el-select v-model="selectedPlan" placeholder="请选择查询方案" size="default" class="select-item" clearable="true">
                 <el-option label="方案一" value="plan1" />
                 <el-option label="方案二" value="plan2" />
                 <el-option label="方案三" value="plan3" />
@@ -162,53 +162,192 @@
               <el-icon><Plus /></el-icon>
               新增查询方案
             </el-button>
-            <el-button type="primary" @click="handleRetrieveData">
+            <!-- <el-button type="primary" @click="handleRetrieveData">
               <el-icon><Link /></el-icon>
               取数
-            </el-button>
+            </el-button> -->
             <el-button type="primary" @click="handleExport">
               <el-icon><Download /></el-icon>
               导出
+            </el-button>
+            <el-button type="primary" @click="resetTableData">
+              <el-icon><Refresh /></el-icon>
+              重置
             </el-button>
           </div>
         </div>
 
         <!-- 页面标题 -->
         <div class="page-title-section">
-          <h2 class="page-title">报表标题</h2>
+          <el-input
+            v-model="reportTitle"
+            class="page-title-input"
+            placeholder="请输入报表标题"
+            @input="handleTitleChange"
+            clearable
+          />
         </div>
 
         <!-- 数据表格 -->
-        <el-table :data="tableData" class="data-table" border stripe :header-cell-style="{background:'#eef1f6',color:'#606266'}">
-          <el-table-column prop="unit" label="单位" width="150" align="center"/>
-          <el-table-column prop="customItem1" label="自定义报表项一" min-width="200" align="center">
-            <template #header>
-              <span>自定义报表项一</span>
-              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
-            </template>
-          </el-table-column>
-          <el-table-column prop="customItem2" label="自定义报表项二" min-width="200" align="center">
-            <template #header>
-              <span>自定义报表项二</span>
-              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
-            </template>
-          </el-table-column>
-          <el-table-column prop="customItem3" label="自定义报表项三" min-width="200" align="center">
-            <!-- <template #header>
-              <span>自定义报表项</span> -->
-              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
-            <!-- </template> -->
-          </el-table-column>
-          <el-table-column prop="more" label="......" min-width="150" align="center">
-            <template #header>
-              <span>......</span>
-              <span style="font-size: smaller;"> 更多数据</span>
-              <!-- <el-icon class="pin-icon"><LocationFilled /></el-icon> -->
-            </template>
-          </el-table-column>
+        <div class="table-container">
+          <el-table 
+            :data="tableData" 
+            class="data-table" 
+            border 
+            stripe 
+            :header-cell-style="{background:'#eef1f6',color:'#606266'}"
+            style="width: 100%"
+          >
+            <el-table-column 
+              v-for="header in dynamicHeaders" 
+              :key="header.prop"
+              :prop="header.prop" 
+              :label="header.label" 
+              :width="header.width"
+              :min-width="header.minWidth"
+              align="center"
+            />
+            <el-table-column 
+              prop="finalResult" 
+              label="最后结果" 
+              width="150" 
+              align="center"
+              fixed="right"
+            />
         </el-table>
+        </div>
       </el-main>
     </el-container>
+
+    <!-- 新增查询方案弹框 -->
+    <el-dialog
+      v-model="dialogVisible"
+      title="新增查询方案"
+      width="80%"
+      :before-close="handleDialogClose"
+    >
+      <div class="condition-dialog">
+        <!-- <div class="condition-title">条件自定义:</div> -->
+        
+        <!-- 取数时间设置 -->
+        <el-row>
+          <el-col :span="12">
+            <div class="time-setting">
+              <div class="time-item">
+                <label>取数时间:</label>
+                <el-date-picker
+                  v-model="queryTimeRange"
+                  type="daterange"
+                  range-separator="至"
+                  start-placeholder="开始日期"
+                  end-placeholder="结束日期"
+                  format="YYYY-MM-DD"
+                  value-format="YYYY-MM-DD"
+                  class="time-picker"
+                />
+              </div>
+            </div>
+          </el-col>
+        </el-row>
+
+        
+        <div class="rule-description">
+          <el-alert
+            title="规则说明"
+            description="必须遵循：要素+运算+要素的模式，例如：科目+运算+项目"
+            type="info"
+            :closable="false"
+            show-icon
+          />
+        </div>
+        <div class="condition-container">
+          <label style="font-weight: 500; color: #333; white-space: nowrap;">条件自定义:</label>
+          <div 
+            v-for="item in conditionItems" 
+            :key="item.id" 
+            class="condition-item"
+          >
+            <!-- 要素选择器 -->
+            <div v-if="item.type === 'element'" class="element-selector">
+              <div class="element-input-group">
+                <el-cascader
+                  v-model="item.value"
+                  :options="cascaderOptions"
+                  placeholder="要素"
+                  clearable
+                  class="cascader-input"
+                />
+                <el-input
+                  v-model="item.customName"
+                  placeholder="自定义表头名（必填）"
+                  clearable
+                  class="custom-name-input"
+                  required
+                />
+              </div>
+              <el-button 
+                type="danger" 
+                size="small" 
+                circle 
+                @click="removeConditionItem(item.id)"
+                class="remove-btn"
+              >
+                <el-icon><Close /></el-icon>
+              </el-button>
+            </div>
+            
+            <!-- 运算选择器 -->
+            <div v-if="item.type === 'operation'" class="operation-selector">
+              <el-select
+                v-model="item.value"
+                placeholder="运算"
+                clearable
+                class="operation-input"
+              >
+                <el-option
+                  v-for="option in operationOptions"
+                  :key="option.value"
+                  :label="option.label"
+                  :value="option.value"
+                />
+              </el-select>
+              <el-button 
+                type="danger" 
+                size="small" 
+                circle 
+                @click="removeConditionItem(item.id)"
+                class="remove-btn"
+              >
+                <el-icon><Close /></el-icon>
+              </el-button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- 添加按钮 -->
+        <div class="add-buttons">
+          <el-button type="primary" @click="addElement">
+            <el-icon><Plus /></el-icon>
+            添加运算+要素
+          </el-button>
+          <el-button type="success" @click="addOperationOnly">
+            <el-icon><Plus /></el-icon>
+            单独添加运算
+          </el-button>
+          <el-button type="warning" @click="addElementOnly">
+            <el-icon><Plus /></el-icon>
+            单独添加要素
+          </el-button>
+        </div>
+      </div>
+      
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button @click="handleCancel">取消</el-button>
+          <el-button type="primary" @click="handleConfirm">保存</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </el-container>
 </template>
 
@@ -220,57 +359,212 @@ import {
   CircleCheck,
   House,
   Plus,
-  Link,
   Download,
-  LocationFilled
+  Close,
+  Refresh
 } from '@element-plus/icons-vue'
 import { exportToExcel, formatFinancialDataAnalysisForExport } from '../utils/excelExport'
 import { ElMessage } from 'element-plus'
 
+// 表头类型定义
+interface TableHeader {
+  prop: string
+  label: string
+  width?: number
+  minWidth?: number
+}
+
 // 响应式数据
 const activeMenu = ref('2-1-3')
-const activeTab = ref('data-analysis')
 const selectedPlan = ref('')
 const selectedUnit = ref('')
 
-// 表格数据
-const tableData = ref([
+// 报表标题相关
+const reportTitle = ref('报表标题')
+const isTitleModified = ref(false)
+
+// 弹框相关状态
+const dialogVisible = ref(false)
+const queryTimeRange = ref<[string, string] | null>(null)
+const conditionItems = ref([
+  { id: 1, type: 'element', value: null, customName: '' },
+  { id: 2, type: 'operation', value: null, customName: '' },
+  { id: 3, type: 'element', value: null, customName: '' }
+])
+
+// 动态表头
+const dynamicHeaders = ref<TableHeader[]>([
+  { prop: 'unit', label: '单位', width: 150 },
+  { prop: 'customFormItem', label: '自定义表单项', width: 150 }
+])
+
+// 获取要素标签的函数
+const getElementLabel = (value: any) => {
+  if (!value || !Array.isArray(value) || value.length === 0) return ''
+  
+  // 根据级联选择器的值获取对应的标签
+  const findLabel = (options: any[], targetValue: any, level = 0): string => {
+    for (const option of options) {
+      if (option.value === targetValue) {
+        return option.label
+      }
+      if (option.children && level < value.length - 1) {
+        const childLabel = findLabel(option.children, value[level + 1], level + 1)
+        if (childLabel) {
+          return level === 0 ? `${option.label}-${childLabel}` : childLabel
+        }
+      }
+    }
+    return ''
+  }
+  
+  return findLabel(cascaderOptions.value, value[0])
+}
+
+// 运算选项
+const operationOptions = [
+  { label: '+', value: '+' },
+  { label: '-', value: '-' },
+  { label: '*', value: '*' },
+  { label: '/', value: '/' },
+  { label: '或', value: 'or' },
+  { label: '且', value: 'and' },
+  { label: '(空)', value: null }
+]
+
+// 要素级联选择器选项
+const cascaderOptions = ref([
   {
-    unit: 'XX中心',
-    customItem1: '100000',
-    customItem2: '200000',
-    customItem3: '300000',
-    more: '...'
+    value: 'subject',
+    label: '科目',
+    children: [
+      {
+        value: 'asset',
+        label: '1资产',
+        children: [
+          { value: '1002', label: '1002' },
+          { value: '100201', label: '100201' }
+        ]
+      },
+      {
+        value: 'liability',
+        label: '2负债',
+        children: [
+          { value: '1011', label: '1011' },
+          { value: '101101', label: '101101' },
+          { value: '101102', label: '101102' }
+        ]
+      },
+      {
+        value: 'netAsset',
+        label: '3净资产',
+        children: [
+          { value: '1021', label: '1021' }
+        ]
+      },
+      {
+        value: 'financialIncome',
+        label: '4财务收入',
+        children: [
+          { value: '1031', label: '1031' }
+        ]
+      },
+      {
+        value: 'financialExpense',
+        label: '5财务费用',
+        children: [
+          { value: '1041', label: '1041' }
+        ]
+      },
+      {
+        value: 'budgetIncome',
+        label: '6预算收入',
+        children: [
+          { value: '1051', label: '1051' }
+        ]
+      },
+      {
+        value: 'budgetExpense',
+        label: '7预算支出',
+        children: [
+          { value: '1061', label: '1061' }
+        ]
+      },
+      {
+        value: 'budgetSurplus',
+        label: '8预算结余',
+        children: [
+          { value: '1071', label: '1071' }
+        ]
+      }
+    ]
   },
   {
-    unit: 'XX市气象局',
-    customItem1: '150000',
-    customItem2: '250000',
-    customItem3: '350000',
-    more: '...'
+    value: 'project',
+    label: '项目',
+    children: [
+      {
+        value: 'project1',
+        label: '项目1',
+        children: [
+          { value: '2001', label: '2001' }
+        ]
+      }
+    ]
   },
   {
-    unit: 'XX分局',
-    customItem1: '80000',
-    customItem2: '180000',
-    customItem3: '280000',
-    more: '...'
+    value: 'fundSource',
+    label: '资金来源',
+    children: [
+      {
+        value: 'fund1',
+        label: '资金来源1',
+        children: [
+          { value: '3001', label: '3001' }
+        ]
+      }
+    ]
   },
   {
-    unit: 'XX站',
-    customItem1: '120000',
-    customItem2: '220000',
-    customItem3: '320000',
-    more: '...'
+    value: 'functional',
+    label: '功能分类',
+    children: [
+      {
+        value: 'func1',
+        label: '功能分类1',
+        children: [
+          { value: '4001', label: '4001' }
+        ]
+      }
+    ]
   },
   {
-    unit: 'XX台',
-    customItem1: '90000',
-    customItem2: '190000',
-    customItem3: '290000',
-    more: '...'
+    value: 'control',
+    label: '控制数',
+    children: [
+      {
+        value: 'control1',
+        label: '控制数1',
+        children: [
+          { value: '5001', label: '5001' }
+        ]
+      }
+    ]
   }
 ])
+
+// 表格数据
+const tableData = ref([
+  { unit: 'XX中心', customFormItem: '...', finalResult: '0' },
+  { unit: 'XX市气象局', customFormItem: '...', finalResult: '0' },
+  { unit: 'XX分局', customFormItem: '...', finalResult: '0' },
+  { unit: 'XX站', customFormItem: '...', finalResult: '0' },
+  { unit: 'XX台', customFormItem: '...', finalResult: '0' }
+])
+
+const resetTableData = () => {
+  tableData.value = [];
+}
 
 // 导出Excel功能
 const handleExport = () => {
@@ -283,13 +577,27 @@ const handleExport = () => {
     // 格式化数据
     const exportData = formatFinancialDataAnalysisForExport(tableData.value)
     
-    // 生成文件名（包含时间戳）
-    const now = new Date()
-    const timestamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')
-    const filename = `财务数据分析统计_${timestamp}`
+    // 生成文件名和表名
+    let filename: string
+    let sheetName: string
+    
+    const trimmedTitle = reportTitle.value.trim()
+    
+    if (isTitleModified.value && trimmedTitle && trimmedTitle !== '报表标题') {
+      // 如果标题被修改且不为空且不是默认值，使用修改后的标题
+      const cleanTitle = trimmedTitle.replace(/[<>:"/\\|?*]/g, '_')
+      filename = cleanTitle
+      sheetName = cleanTitle
+    } else {
+      // 否则使用默认命名规则（包括：未修改、为空、为空格、为默认值"报表标题"）
+      const now = new Date()
+      const timestamp = now.toISOString().slice(0, 19).replace(/[-:]/g, '').replace('T', '_')
+      filename = `财务数据分析统计_${timestamp}`
+      sheetName = '财务数据分析统计'
+    }
     
     // 导出Excel
-    const success = exportToExcel(exportData, filename, '财务数据分析统计')
+    const success = exportToExcel(exportData, filename, sheetName)
     
     if (success) {
       ElMessage.success('导出成功！')
@@ -304,13 +612,249 @@ const handleExport = () => {
 
 // 新增查询方案
 const handleAddPlan = () => {
-  ElMessage.info('新增查询方案功能开发中...')
+  dialogVisible.value = true
 }
 
-// 取数功能
-const handleRetrieveData = () => {
-  ElMessage.info('取数功能开发中...')
+// 验证规则完整性
+const validateRule = () => {
+  const elements = conditionItems.value.filter(item => item.type === 'element')
+  const operations = conditionItems.value.filter(item => item.type === 'operation')
+  
+  // 检查是否遵循 要素+运算+要素 的模式
+  if (elements.length < 2) {
+    return { valid: false, message: '至少需要两个要素' }
+  }
+  
+  if (operations.length !== elements.length - 1) {
+    return { valid: false, message: '运算数量必须比要素数量少1个' }
+  }
+  
+  // 检查排列顺序是否正确
+  for (let i = 0; i < conditionItems.value.length; i++) {
+    const item = conditionItems.value[i]
+    if (!item) continue
+    
+    if (i % 2 === 0 && item.type !== 'element') {
+      return { valid: false, message: '规则必须遵循：要素+运算+要素的模式' }
+    }
+    if (i % 2 === 1 && item.type !== 'operation') {
+      return { valid: false, message: '规则必须遵循：要素+运算+要素的模式' }
+    }
+  }
+  
+  return { valid: true, message: '' }
 }
+
+// 验证规则完整性（宽松模式，用于单独添加）
+const validateRuleLoose = () => {
+  const elements = conditionItems.value.filter(item => item.type === 'element')
+  
+  // 宽松验证：至少有一个要素
+  if (elements.length < 1) {
+    return { valid: false, message: '至少需要一个要素' }
+  }
+  
+  return { valid: true, message: '' }
+}
+
+// 添加要素
+const addElement = () => {
+  const validation = validateRule()
+  if (!validation.valid) {
+    ElMessage.warning(validation.message)
+    return
+  }
+  
+  const newId = Math.max(...conditionItems.value.map(item => item.id)) + 1
+  
+  // 先添加运算
+  conditionItems.value.push({ id: newId, type: 'operation', value: null, customName: '' })
+  
+  // 再添加要素
+  const elementId = newId + 1
+  conditionItems.value.push({ id: elementId, type: 'element', value: null, customName: '' })
+}
+
+// 单独添加运算
+const addOperationOnly = () => {
+  const validation = validateRuleLoose()
+  if (!validation.valid) {
+    ElMessage.warning(validation.message)
+    return
+  }
+  
+  const newId = Math.max(...conditionItems.value.map(item => item.id)) + 1
+  conditionItems.value.push({ id: newId, type: 'operation', value: null, customName: '' })
+}
+
+// 单独添加要素
+const addElementOnly = () => {
+  const validation = validateRuleLoose()
+  if (!validation.valid) {
+    ElMessage.warning(validation.message)
+    return
+  }
+  
+  const newId = Math.max(...conditionItems.value.map(item => item.id)) + 1
+  conditionItems.value.push({ id: newId, type: 'element', value: null, customName: '' })
+}
+
+
+// 删除条件项
+const removeConditionItem = (id: number) => {
+  const index = conditionItems.value.findIndex(item => item.id === id)
+  if (index > -1) {
+    const item = conditionItems.value[index]
+    if (!item) return
+    
+    // 如果是删除要素，需要同时删除对应的运算
+    if (item.type === 'element') {
+      // 找到下一个运算并删除
+      const nextOperationIndex = conditionItems.value.findIndex((nextItem, nextIndex) => 
+        nextIndex > index && nextItem.type === 'operation'
+      )
+      if (nextOperationIndex > -1) {
+        conditionItems.value.splice(nextOperationIndex, 1)
+      }
+    }
+    
+    // 如果是删除运算，需要同时删除下一个要素
+    if (item.type === 'operation') {
+      // 找到下一个要素并删除
+      const nextElementIndex = conditionItems.value.findIndex((nextItem, nextIndex) => 
+        nextIndex > index && nextItem.type === 'element'
+      )
+      if (nextElementIndex > -1) {
+        conditionItems.value.splice(nextElementIndex, 1)
+      }
+    }
+    
+    // 删除当前项
+    conditionItems.value.splice(index, 1)
+    
+    // 确保至少保留一个要素
+    const remainingElements = conditionItems.value.filter(item => item.type === 'element')
+    if (remainingElements.length === 0) {
+      conditionItems.value.push({ id: Math.max(...conditionItems.value.map(item => item.id)) + 1, type: 'element', value: null, customName: '' })
+    }
+  }
+}
+
+// 更新表头
+const updateTableHeaders = () => {
+  const elementItems = conditionItems.value.filter(item => item.type === 'element' && item.value)
+  
+  // 重置表头，保留单位列
+  dynamicHeaders.value = [
+    { prop: 'unit', label: '单位', width: 150 }
+  ]
+  
+  // 添加选择的要素作为表头
+  elementItems.forEach((item) => {
+    // 优先使用自定义名称，如果没有则使用要素标签
+    const label = item.customName || getElementLabel(item.value)
+    if (label) {
+      dynamicHeaders.value.push({
+        prop: `element_${item.id}`,
+        label: label,
+        minWidth: 200
+      })
+    }
+  })
+  
+  // 更新表格数据
+  updateTableData()
+}
+
+// 更新表格数据
+const updateTableData = () => {
+  const elementItems = conditionItems.value.filter(item => item.type === 'element' && item.value)
+  
+  tableData.value = tableData.value.map(row => {
+    const newRow: any = { unit: row.unit, customFormItem: '...', finalResult: '0' }
+    
+    elementItems.forEach((item, index) => {
+      newRow[`element_${item.id}`] = `${(index + 1) * 100000 + Math.floor(Math.random() * 50000)}`
+    })
+    
+    return newRow
+  })
+}
+
+// 确认保存
+const handleConfirm = () => {
+  // 验证取数时间范围
+  if (!queryTimeRange.value || queryTimeRange.value.length !== 2) {
+    ElMessage.error('请选择取数时间范围')
+    return
+  }
+  
+  // 验证规则
+  const validation = validateRule()
+  if (!validation.valid) {
+    ElMessage.error(validation.message)
+    return
+  }
+  
+  // 检查是否所有要素都已选择
+  const unselectedElements = conditionItems.value.filter(item => 
+    item.type === 'element' && !item.value
+  )
+  if (unselectedElements.length > 0) {
+    ElMessage.error('请为所有要素选择具体值')
+    return
+  }
+  
+  // 检查是否所有运算都已选择
+  const unselectedOperations = conditionItems.value.filter(item => 
+    item.type === 'operation' && !item.value
+  )
+  if (unselectedOperations.length > 0) {
+    ElMessage.error('请为所有运算选择具体符号')
+    return
+  }
+  
+  // 检查是否所有要素的自定义表头名都已填写
+  const emptyCustomNames = conditionItems.value.filter(item => 
+    item.type === 'element' && !item.customName.trim()
+  )
+  if (emptyCustomNames.length > 0) {
+    ElMessage.error('请为所有要素填写自定义表头名')
+    return
+  }
+  
+  updateTableHeaders()
+  ElMessage.success('查询方案保存成功！')
+  dialogVisible.value = false
+}
+
+// 重置弹框状态
+const resetDialog = () => {
+  queryTimeRange.value = null
+  conditionItems.value = [
+    { id: 1, type: 'element', value: null, customName: '' },
+    { id: 2, type: 'operation', value: null, customName: '' },
+    { id: 3, type: 'element', value: null, customName: '' }
+  ]
+}
+
+// 弹框关闭处理
+const handleDialogClose = (done: () => void) => {
+  resetDialog()
+  done()
+}
+
+// 取消
+const handleCancel = () => {
+  resetDialog()
+  dialogVisible.value = false
+}
+
+// 标题修改处理
+const handleTitleChange = () => {
+  isTitleModified.value = true
+}
+
 </script>
 
 <style scoped>
@@ -402,7 +946,7 @@ const handleRetrieveData = () => {
 }
 
 .select-item {
-  width: 150px;
+  width: 250px;
 }
 
 .action-buttons {
@@ -415,6 +959,28 @@ const handleRetrieveData = () => {
   margin-bottom: 20px;
 }
 
+.page-title-input {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.page-title-input :deep(.el-input__inner) {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
+.page-title-input :deep(.el-input__inner):focus {
+  border: 1px solid #409EFF;
+  background: white;
+  box-shadow: 0 0 0 2px rgba(64, 158, 255, 0.2);
+}
+
 .page-title {
   font-size: 24px;
   font-weight: 600;
@@ -422,8 +988,14 @@ const handleRetrieveData = () => {
   margin: 0;
 }
 
+.table-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
 .data-table {
   width: 100%;
+  min-width: 100%;
 }
 
 .data-table :deep(.el-table__header) {
@@ -456,6 +1028,95 @@ const handleRetrieveData = () => {
   margin: 0;
 }
 
+/* 弹框样式 */
+.condition-dialog {
+  padding: 20px;
+}
+
+.condition-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.time-setting {
+  margin-bottom: 20px;
+}
+
+.time-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.time-item label {
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+}
+
+.time-picker {
+  width: 300px;
+}
+
+.rule-description {
+  margin-bottom: 20px;
+}
+
+.condition-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  margin-bottom: 20px;
+  align-items: center;
+}
+
+.condition-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.element-selector,
+.operation-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.element-input-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cascader-input {
+  width: 200px;
+}
+
+.custom-name-input {
+  width: 200px;
+}
+
+.operation-input {
+  width: 120px;
+}
+
+.remove-btn {
+  margin-left: 5px;
+}
+
+.add-buttons {
+  display: flex;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+.dialog-footer {
+  text-align: right;
+}
+
 /* 响应式设计 */
 @media (max-width: 768px) {
   .filter-section {
@@ -472,6 +1133,19 @@ const handleRetrieveData = () => {
   .action-buttons {
     width: 100%;
     justify-content: center;
+  }
+  
+  .condition-container {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .cascader-input {
+    width: 100%;
+  }
+  
+  .operation-input {
+    width: 100%;
   }
 }
 </style>
