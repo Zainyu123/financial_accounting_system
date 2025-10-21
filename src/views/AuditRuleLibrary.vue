@@ -211,7 +211,7 @@ import {
 } from '@element-plus/icons-vue'
 import { exportToExcel, formatAuditRuleLibraryForExport } from '../utils/excelExport'
 import { ElMessage, FormInstance } from 'element-plus'
-import { selectAuditRule } from '@/api/AuditRule/index.js'
+// import { selectAuditRule } from '@/api/AuditRule/index.js'
 
 // 响应式数据
 const activeMenu = ref('2-1-2')
@@ -283,9 +283,9 @@ const handleExport = () => {
 // 查询功能
 const handleSearch = () => {
   ElMessage.info('查询功能开发中...')
-  selectAuditRule().then(res => {
-    console.log("查询出来的规则库信息:", res)
-  })
+  // selectAuditRule().then(res => {
+  //   console.log("查询出来的规则库信息:", res)
+  // })
 }
 </script>
 

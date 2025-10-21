@@ -244,11 +244,11 @@ const handleExport = () => {
 // 查询功能
 const handleSearch = () => {
   ElMessage.info('查询功能开发中...')
-  selectAuditRule().then(_response => {
-    console.log('用户列表:', _response.data);
-  }).catch(_error => {
-    console.error('获取用户列表失败:', _error);
-  });
+  // selectAuditRule().then(res => {
+  //   console.log('用户列表:', _response.data);
+  // }).catch(_error => {
+  //   console.error('获取用户列表失败:', _error);
+  // });
 }
 
 // 导入功能
