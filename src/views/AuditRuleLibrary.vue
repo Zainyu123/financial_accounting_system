@@ -210,12 +210,13 @@ import {
   Plus
 } from '@element-plus/icons-vue'
 import { exportToExcel, formatAuditRuleLibraryForExport } from '../utils/excelExport'
-import { ElMessage, FormInstance } from 'element-plus'
+import { ElMessage } from 'element-plus'
+import type { FormInstance } from 'element-plus'
 // import { selectAuditRule } from '@/api/AuditRule/index.js'
 
 // 响应式数据
 const activeMenu = ref('2-1-2')
-const activeTab = ref('audit-library')
+// const activeTab = ref('audit-library')
 const selectedType = ref('')
 const dialogVisible = ref(false)
 

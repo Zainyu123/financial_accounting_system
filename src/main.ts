@@ -3,9 +3,9 @@ import './style.css'
 import App from './App.vue'
 import ElementPlus from 'element-plus'
 import 'element-plus/dist/index.css'
-import zhCn from 'element-plus/dist/locale/zh-cn.mjs'
+import zhCn from 'element-plus/locale/zh-cn'
 import './assets/global.css'
-import router from './router/index.js'
+import router from './router/index'
 
 const app = createApp(App)
 app.use(ElementPlus, { locale: zhCn })
