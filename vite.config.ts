@@ -4,6 +4,7 @@ import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
+  base: '/financial_accounting_system/',
   plugins: [vue()],
     server: {
       host: '0.0.0.0', // 主要是host这个配置
