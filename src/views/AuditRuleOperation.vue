@@ -189,7 +189,7 @@ import {
 } from '@element-plus/icons-vue'
 import { exportToExcel, formatTableDataForExport } from '../utils/excelExport'
 import { ElMessage } from 'element-plus'
-import { selectAuditRule } from '@/api/AuditRule/index.js'
+// import { selectAuditRule } from '@/api/AuditRule/index.js'
 
 // 响应式数据
 const activeMenu = ref('2-1-1')
